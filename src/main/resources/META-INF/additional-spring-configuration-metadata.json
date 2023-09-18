@@ -3,6 +3,16 @@
     {
       "name": "geoapify.data.config.apiKey",
       "type": "java.lang.String",
-      "description": "Description for geoapify.data.config.apiKey."
-  }
-] }
+      "description": "API key for Geoapify API"
+    },
+    {
+      "name": "telegram.data.config.botToken",
+      "type": "java.lang.String",
+      "description": "Telegram bot token"
+    },
+    {
+      "name": "telegram.data.config.botUsername",
+      "type": "java.lang.String",
+      "description": "Telegram bot username"
+    }
+  ] }

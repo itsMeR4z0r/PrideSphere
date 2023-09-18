@@ -1,11 +1,11 @@
-package com.r4z0r.pridesphere.geoapify.models.endereco;
+package com.r4z0r.pridesphere.geoapify.models.reverseGeocoding;
 
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class Endereco {
+public class ReverseGeocoding {
     private String type;
     private List<Feature> features;
     private Query query;

@@ -1,0 +1,8 @@
+${AnsiColor.BRIGHT_RED}______________${AnsiColor.RED}______________${AnsiColor.BRIGHT_BLUE}______________${AnsiColor.BLUE}______________${AnsiColor.BRIGHT_YELLOW}______________${AnsiColor.YELLOW}______________${AnsiColor.BRIGHT_GREEN}______________${AnsiColor.GREEN}______________${AnsiColor.BRIGHT_MAGENTA}_________________${AnsiStyle.BOLD}
+${AnsiColor.BRIGHT_RED}|`````````, |`````````, | |``````.  |                        ..'''' |`````````, |         | |            |`````````, |
+${AnsiColor.BRIGHT_BLUE}|'''''''''  |'''|'''''  | |       | |______               .''       |'''''''''  |_________| |______      |'''|'''''  |______
+${AnsiColor.BRIGHT_YELLOW}|           |    `.     | |       | |                  ..'          |           |         | |            |    `.     |
+${AnsiColor.BRIGHT_GREEN}|           |      `.   | |......'  |___________ ....''             |           |         | |___________ |      `.   |___________
+${AnsiColor.BRIGHT_RED}______________${AnsiColor.RED}______________${AnsiColor.BRIGHT_BLUE}______________${AnsiColor.BLUE}______________${AnsiColor.BRIGHT_YELLOW}______________${AnsiColor.YELLOW}______________${AnsiColor.BRIGHT_GREEN}______________${AnsiColor.GREEN}______________${AnsiColor.BRIGHT_MAGENTA}_________________${AnsiStyle.BOLD}
+${AnsiColor.BRIGHT_MAGENTA}PrideSphere ${application.version} ${AnsiColor.BRIGHT_WHITE}- ${AnsiColor.BRIGHT_RED}R4z0r../
+${AnsiColor.BRIGHT_GREEN}Powered by Spring Boot ${spring-boot.version}${AnsiColor.DEFAULT}

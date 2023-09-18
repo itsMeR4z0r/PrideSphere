@@ -1,4 +1,4 @@
-package com.r4z0r.pridesphere.geoapify.models.endereco;
+package com.r4z0r.pridesphere.geoapify.models.reverseGeocoding;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
