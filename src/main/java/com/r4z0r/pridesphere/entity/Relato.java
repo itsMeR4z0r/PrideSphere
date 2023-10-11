@@ -2,13 +2,17 @@ package com.r4z0r.pridesphere.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.*;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
-@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class Relato {
 
     @Id

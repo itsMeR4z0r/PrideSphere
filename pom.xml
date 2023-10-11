@@ -81,11 +81,13 @@
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>6.7.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.telegram/telegrambots-abilities -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-abilities</artifactId>
-            <version>6.7.0</version>
+            <version>6.8.0</version>
         </dependency>
+
     </dependencies>
 
     <build>
