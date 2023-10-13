@@ -3,36 +3,48 @@ package com.r4z0r.pridesphere.bot;
 import com.r4z0r.pridesphere.bot.data.CallbackMsgRepository;
 import com.r4z0r.pridesphere.bot.data.Mensagem;
 import com.r4z0r.pridesphere.bot.data.MensagemRepository;
+import com.r4z0r.pridesphere.entity.Admin;
+import com.r4z0r.pridesphere.repositories.AdminRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.r4z0r.pridesphere.bot.Acoes.*;
+import static com.r4z0r.pridesphere.bot.Constants.HELP_TEXT;
 
 @Slf4j
 @Component
 public class PrideSphereBot extends TelegramLongPollingBot {
 
     private final Environment env;
-
+    private final Long ownnerId;
     @Autowired
     public PrideSphereBot(Environment env) {
         this.env = env;
+        this.ownnerId = Long.valueOf(Objects.requireNonNull(env.getProperty("telegram.data.config.botOwnnerID")));
     }
 
     @Autowired
     private MensagemRepository mensagemRepository;
     @Autowired
     private CallbackMsgRepository callbackMsgRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     private void options(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -45,6 +57,28 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                 var respostas = new Respostas(mensagemRepository.save(mensagem), callbackMsgRepository);
                 try {
                     execute(respostas.start());
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            }else if(update.getMessage().getText().equals("/help")) {
+                try {
+                    SendMessage msg = new SendMessage();
+                    msg.setText(HELP_TEXT);
+                    msg.setChatId(update.getMessage().getChatId());
+                    msg.setParseMode(ParseMode.MARKDOWN);
+                    execute(msg);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            }else if (update.getMessage().getText().trim().equalsIgnoreCase("/genPermission".trim()) && update.getMessage().getFrom().getId().equals(ownnerId)) {
+                try {
+                    SendMessage msg = new SendMessage();
+                    msg.setParseMode(ParseMode.MARKDOWN);
+                    msg.setChatId(update.getMessage().getChatId());
+                    Admin admin = new Admin();
+                    adminRepository.save(admin);
+                    msg.setText("Permissão gerada com sucesso!\n Permissao: " + admin.getUsername());
+                    execute(msg);
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
@@ -109,6 +143,18 @@ public class PrideSphereBot extends TelegramLongPollingBot {
     @Override
     public void onRegister() {
         super.onRegister();
+        List<BotCommand> commands = List.of(
+                new BotCommand("start", "Iniciar a interacão com o bot"),
+                new BotCommand("help", "Mostrar a ajuda do bot")
+        );
+        SetMyCommands setMyCommands = new SetMyCommands();
+        setMyCommands.setScope(new BotCommandScopeDefault()); // Define os comandos para o escopo padrão (conversas privadas)
+        setMyCommands.setCommands(commands);
+        try {
+            execute(setMyCommands);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
