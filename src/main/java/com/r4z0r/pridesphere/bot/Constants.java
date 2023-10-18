@@ -1,9 +1,15 @@
 package com.r4z0r.pridesphere.bot;
 
+import java.io.File;
+
 public class Constants {
+    public static final String TEMP_PATH_QRCODE = System.getProperty("java.io.tmpdir") + File.separator + "qrcodeLogin" + File.separator;
     public static final String START_DESCRIPTION = "Starts the bot";
 
     public static final String CHAT_STATES = "chatStates";
+    public static final String CREATE_NEW_ADMIN_TEXT = "Responda essa messagem com email do novo administrador.";
+    public static final String CREATE_NEW_ADMIN_INVALID_EMAIL = "O email informado é invalido, responda a mensagem com um email válido.";
+    public static final String LOGIN_TEXT = "Para realizar o login no dashboard, tire uma foto do QrCode no site e responda essa mensagem com a foto.";
     public static final String START_TEXT = "Olá! Bem-vindo ao\n*PrideSphere: Mapeando Aceitação LGBTQIA+ \uD83C\uDFF3\uFE0F\u200D\uD83C\uDF08*\n\n" +
             "Escolha uma opção abaixo:";
 

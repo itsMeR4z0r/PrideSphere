@@ -6,6 +6,7 @@ import com.r4z0r.pridesphere.bot.data.Mensagem;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -95,6 +96,7 @@ public class Respostas {
         new_message.setReplyMarkup(markupInline);
         return new_message;
     }
+
 
     public EditMessageText enviarRelato() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();

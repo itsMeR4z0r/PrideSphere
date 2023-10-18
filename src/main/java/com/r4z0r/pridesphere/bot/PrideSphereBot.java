@@ -1,31 +1,49 @@
 package com.r4z0r.pridesphere.bot;
 
+import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.r4z0r.pridesphere.bot.data.CallbackMsgRepository;
 import com.r4z0r.pridesphere.bot.data.Mensagem;
 import com.r4z0r.pridesphere.bot.data.MensagemRepository;
 import com.r4z0r.pridesphere.entity.Admin;
 import com.r4z0r.pridesphere.repositories.AdminRepository;
+import com.r4z0r.pridesphere.repositories.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.UUID;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
+import static com.r4z0r.pridesphere.Util.readQrCode;
 import static com.r4z0r.pridesphere.bot.Acoes.*;
-import static com.r4z0r.pridesphere.bot.Constants.HELP_TEXT;
+import static com.r4z0r.pridesphere.bot.Constants.*;
 
 @Slf4j
 @Component
@@ -45,7 +63,20 @@ public class PrideSphereBot extends TelegramLongPollingBot {
     private CallbackMsgRepository callbackMsgRepository;
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
+
+    private InlineKeyboardMarkup makeCancelButton() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton btnCancelar = new InlineKeyboardButton();
+        btnCancelar.setText("Cancelar");
+        btnCancelar.setCallbackData("cancel");
+        row.add(btnCancelar);
+        rows.add(row);
+        return new InlineKeyboardMarkup(rows);
+    }
     private void options(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             if (update.getMessage().getText().equals("/start")) {
@@ -70,18 +101,72 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
-            }else if (update.getMessage().getText().trim().equalsIgnoreCase("/genPermission".trim()) && update.getMessage().getFrom().getId().equals(ownnerId)) {
+            } else if (update.getMessage().getText().trim().equalsIgnoreCase("/login".trim())) {
+                SendMessage message = new SendMessage();
+                message.setChatId(update.getMessage().getChatId());
+                message.setText(LOGIN_TEXT);
+                message.setReplyMarkup(makeCancelButton());
                 try {
-                    SendMessage msg = new SendMessage();
-                    msg.setParseMode(ParseMode.MARKDOWN);
-                    msg.setChatId(update.getMessage().getChatId());
-                    Admin admin = new Admin();
-                    adminRepository.save(admin);
-                    msg.setText("Permissão gerada com sucesso!\n Permissao: " + admin.getUsername());
-                    execute(msg);
+                    execute(message);
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
+
+            } else if (update.getMessage().getText().trim().equalsIgnoreCase("/createAdmin".trim()) && update.getMessage().getFrom().getId().equals(ownnerId)) {
+                try {
+                    SendMessage message = new SendMessage();
+                    message.setChatId(update.getMessage().getChatId());
+                    message.setText(CREATE_NEW_ADMIN_TEXT);
+                    message.setReplyMarkup(makeCancelButton());
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            } else if (update.getMessage().getReplyToMessage() != null && update.getMessage().getFrom().getId().equals(ownnerId) && (update.getMessage().getReplyToMessage().getText().equals(CREATE_NEW_ADMIN_TEXT) || update.getMessage().getReplyToMessage().getText().equals(CREATE_NEW_ADMIN_INVALID_EMAIL))) {
+
+                var emailAdmin = update.getMessage().getText().trim();
+                DeleteMessage deleteMessage = new DeleteMessage();
+                deleteMessage.setChatId(update.getMessage().getChatId());
+                deleteMessage.setMessageId(update.getMessage().getReplyToMessage().getMessageId());
+                try {
+                    execute(deleteMessage);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+                if (EmailValidator.getInstance().isValid(emailAdmin)) {
+                    var admin = new Admin();
+                    admin.setEmail(emailAdmin);
+                    admin.setNickname(update.getMessage().getFrom().getUserName());
+                    adminRepository.save(admin);
+                    SendMessage message = new SendMessage();
+                    message.setChatId(update.getMessage().getChatId());
+                    message.setText("Admin criado com sucesso!\nO usuário já pode efetuar o login na dashboard.");
+                    try {
+                        execute(message);
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    SendMessage message = new SendMessage();
+                    message.setChatId(update.getMessage().getChatId());
+                    message.setReplyToMessageId(update.getMessage().getMessageId());
+                    message.setReplyMarkup(makeCancelButton());
+                    message.setText(CREATE_NEW_ADMIN_INVALID_EMAIL);
+                    try {
+                        execute(message);
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        } else if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("cancel")) {
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+            deleteMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+            try {
+                execute(deleteMessage);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
             }
         } else if (update.hasCallbackQuery()) {
             var mensagem = new Mensagem();
@@ -122,6 +207,18 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                     throw new RuntimeException(ex);
                 }
             }
+        } else if (update.getMessage().hasPhoto() && update.getMessage().getReplyToMessage() != null && update.getMessage().getReplyToMessage().getText().equals(LOGIN_TEXT)) {
+            try {
+                var bestImage = update.getMessage().getPhoto().stream().max(Comparator.comparingInt(p -> p.getWidth() * p.getHeight())).get();
+                GetFile getFile = new GetFile();
+                getFile.setFileId(bestImage.getFileId());
+                org.telegram.telegrambots.meta.api.objects.File file = execute(getFile);
+                var linkdownload = file.getFileUrl(getBotToken());
+                System.out.println(readQrCode(linkdownload));
+            } catch (IOException | TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+
         }
     }
 

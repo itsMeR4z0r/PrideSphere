@@ -1,12 +1,11 @@
 package com.r4z0r.pridesphere.entity;
 
-import com.r4z0r.pridesphere.enums.Plataforma;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -20,19 +19,29 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String nome;
-    @NotNull
-    private Plataforma plataforma;
+    private String username;
 
-    @Column(updatable = false, insertable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Timestamp dataCadastro;
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Admin admin;
+
+    @Column(updatable = false)
+    private LocalDateTime dataCadastro;
+    private LocalDateTime dataAtualizacao;
+
     @NotNull
     @NotBlank
-    private String idPlataforma;
+    private Long idPlataforma;
 
+    @NotNull
+    @NotBlank
+    private Long chatId;
     @PrePersist
-    public void onInsert() {
-        dataCadastro = new Timestamp(System.currentTimeMillis());
+    public void prePersist() {
+        dataCadastro = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        dataAtualizacao = LocalDateTime.now();
     }
 }
