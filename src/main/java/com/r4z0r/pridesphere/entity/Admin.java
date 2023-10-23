@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -19,7 +20,7 @@ public class Admin {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private String validationCode = new Util("==").gerarCodigo(12); //permissao gerada
+    private String validationCode = Util.gerarCodigo(12); //permissao gerada
 
     @Column(updatable = false)
     private LocalDateTime dataCadastro;
@@ -39,6 +40,8 @@ public class Admin {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
+    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AdminSession> sessions;
     @PrePersist
     public void prePersist() {
         dataCadastro = LocalDateTime.now();

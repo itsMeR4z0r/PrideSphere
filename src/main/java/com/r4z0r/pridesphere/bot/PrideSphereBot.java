@@ -1,9 +1,6 @@
 package com.r4z0r.pridesphere.bot;
 
-import com.google.zxing.*;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.r4z0r.pridesphere.Util;
 import com.r4z0r.pridesphere.bot.data.CallbackMsgRepository;
 import com.r4z0r.pridesphere.bot.data.Mensagem;
 import com.r4z0r.pridesphere.bot.data.MensagemRepository;
@@ -12,16 +9,10 @@ import com.r4z0r.pridesphere.repositories.AdminRepository;
 import com.r4z0r.pridesphere.repositories.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -33,15 +24,10 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.util.*;
 
-import static com.r4z0r.pridesphere.Util.readQrCode;
 import static com.r4z0r.pridesphere.bot.Acoes.*;
 import static com.r4z0r.pridesphere.bot.Constants.*;
 
@@ -101,17 +87,16 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
-            } else if (update.getMessage().getText().trim().equalsIgnoreCase("/login".trim())) {
-                SendMessage message = new SendMessage();
-                message.setChatId(update.getMessage().getChatId());
-                message.setText(LOGIN_TEXT);
-                message.setReplyMarkup(makeCancelButton());
+            }else if(update.getMessage().getText().equals("/login")) {
                 try {
-                    execute(message);
-                } catch (TelegramApiException e) {
+                    SendMessage msg = new SendMessage();
+                    msg.setText(env.getProperty("urlUI") + "/qrcode?id=" + new Util(env.getProperty("crypto.key.encryption")).encrypt(String.valueOf(update.getMessage().getFrom().getId())));
+                    msg.setChatId(update.getMessage().getChatId());
+                    msg.setParseMode(ParseMode.MARKDOWN);
+                    execute(msg);
+                } catch (TelegramApiException | GeneralSecurityException e) {
                     throw new RuntimeException(e);
                 }
-
             } else if (update.getMessage().getText().trim().equalsIgnoreCase("/createAdmin".trim()) && update.getMessage().getFrom().getId().equals(ownnerId)) {
                 try {
                     SendMessage message = new SendMessage();
@@ -207,18 +192,6 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                     throw new RuntimeException(ex);
                 }
             }
-        } else if (update.getMessage().hasPhoto() && update.getMessage().getReplyToMessage() != null && update.getMessage().getReplyToMessage().getText().equals(LOGIN_TEXT)) {
-            try {
-                var bestImage = update.getMessage().getPhoto().stream().max(Comparator.comparingInt(p -> p.getWidth() * p.getHeight())).get();
-                GetFile getFile = new GetFile();
-                getFile.setFileId(bestImage.getFileId());
-                org.telegram.telegrambots.meta.api.objects.File file = execute(getFile);
-                var linkdownload = file.getFileUrl(getBotToken());
-                System.out.println(readQrCode(linkdownload));
-            } catch (IOException | TelegramApiException e) {
-                throw new RuntimeException(e);
-            }
-
         }
     }
 
