@@ -21,19 +21,14 @@ public class Usuario {
 
     private String username;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Admin admin;
-
     @Column(updatable = false)
     private LocalDateTime dataCadastro;
     private LocalDateTime dataAtualizacao;
 
     @NotNull
-    @NotBlank
     private Long idPlataforma;
 
     @NotNull
-    @NotBlank
     private Long chatId;
     @PrePersist
     public void prePersist() {

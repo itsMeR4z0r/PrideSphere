@@ -5,6 +5,7 @@ import com.r4z0r.pridesphere.bot.data.CallbackMsgRepository;
 import com.r4z0r.pridesphere.bot.data.Mensagem;
 import com.r4z0r.pridesphere.bot.data.MensagemRepository;
 import com.r4z0r.pridesphere.entity.Admin;
+import com.r4z0r.pridesphere.entity.Usuario;
 import com.r4z0r.pridesphere.repositories.AdminRepository;
 import com.r4z0r.pridesphere.repositories.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -89,6 +90,13 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                 }
             }else if(update.getMessage().getText().equals("/login")) {
                 try {
+                    if(!usuarioRepository.existsByIdPlataforma(update.getMessage().getFrom().getId())){
+                        var usuario = new Usuario();
+                        usuario.setChatId(update.getMessage().getChatId());
+                        usuario.setUsername(update.getMessage().getFrom().getUserName());
+                        usuario.setIdPlataforma(update.getMessage().getFrom().getId());
+                        usuarioRepository.save(usuario);
+                    }
                     SendMessage msg = new SendMessage();
                     msg.setText(env.getProperty("urlUI") + "/qrcode?id=" + new Util(env.getProperty("crypto.key.encryption")).encrypt(String.valueOf(update.getMessage().getFrom().getId())));
                     msg.setChatId(update.getMessage().getChatId());
