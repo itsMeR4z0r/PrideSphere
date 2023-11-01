@@ -3,6 +3,7 @@ package com.r4z0r.pridesphere.entity;
 import com.r4z0r.pridesphere.Util;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -50,5 +51,28 @@ public class Admin {
     @PreUpdate
     public void preUpdate() {
         dataAtualizacao = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        try {
+            var json = new JSONObject();
+            json.put("id", id);
+            json.put("validationCode", validationCode);
+            json.put("dataCadastro", dataCadastro);
+            json.put("dataAtualizacao", dataAtualizacao);
+            json.put("dataAtivacao", dataAtivacao);
+            json.put("email", email);
+            json.put("name", name);
+            json.put("nickname", nickname);
+            json.put("picture", picture);
+            json.put("ativo", ativo);
+            json.put("valido", valido);
+            json.put("usuario", usuario != null ? new JSONObject(usuario.toString()) : null);
+            json.put("sessions", sessions);
+            return json.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

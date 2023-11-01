@@ -11,8 +11,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class PrideSphereApplication {
 
     public static void main(String[] args) {
-        var path = System.getProperty("java.library.path");
-        System.out.println(path);
         var ctx = SpringApplication.run(PrideSphereApplication.class, args);
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
