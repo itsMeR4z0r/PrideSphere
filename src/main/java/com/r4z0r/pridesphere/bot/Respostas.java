@@ -1,29 +1,33 @@
 package com.r4z0r.pridesphere.bot;
 
 import com.r4z0r.pridesphere.bot.data.CallbackMsg;
-import com.r4z0r.pridesphere.bot.data.CallbackMsgRepository;
+import com.r4z0r.pridesphere.bot.data.CallbackMsgService;
 import com.r4z0r.pridesphere.bot.data.Mensagem;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.r4z0r.pridesphere.bot.Acoes.*;
-import static com.r4z0r.pridesphere.bot.Constants.*;
+import static com.r4z0r.pridesphere.bot.Acoes.ENVIAR_RELATO;
+import static com.r4z0r.pridesphere.bot.Acoes.ENVIAR_RELATO_OP_ENVIAR;
+import static com.r4z0r.pridesphere.bot.Acoes.MENU_INICIAL;
+import static com.r4z0r.pridesphere.bot.Acoes.VER_RELATO;
+import static com.r4z0r.pridesphere.bot.Constants.INICIO_OP_ENVIAR_RECLAMACAO;
+import static com.r4z0r.pridesphere.bot.Constants.INICIO_OP_VER_RECLAMACOES;
+import static com.r4z0r.pridesphere.bot.Constants.START_TEXT;
 
 public class Respostas {
-    private Mensagem mensagem;
-    private CallbackMsgRepository callbackMsgRepository;
+    private final Mensagem mensagem;
+    private final CallbackMsgService callbackMsgService;
 
 
-    public Respostas(Mensagem mensagem, CallbackMsgRepository callbackMsgRepository) {
+    public Respostas(Mensagem mensagem, CallbackMsgService callbackMsgService) {
         this.mensagem = mensagem;
-        this.callbackMsgRepository = callbackMsgRepository;
+        this.callbackMsgService = callbackMsgService;
     }
 
     private String makeRelato(String etapa, String natureza, String relatoId) {
@@ -38,7 +42,7 @@ public class Respostas {
         if (relatoId != null) {
             relato.setRelatoId(relatoId);
         }
-        CallbackMsg result = callbackMsgRepository.save(relato);
+        CallbackMsg result = callbackMsgService.save(relato);
         return String.valueOf(result.getId());
     }
 
@@ -70,7 +74,7 @@ public class Respostas {
     }
 
     public EditMessageText menuInicial() {
-        callbackMsgRepository.deleteByMessageId(mensagem.getMessageId());
+        callbackMsgService.deleteByMessageId(mensagem.getMessageId());
         EditMessageText new_message = new EditMessageText();
         new_message.setChatId(mensagem.getChatId());
         new_message.setMessageId(mensagem.getMessageId());

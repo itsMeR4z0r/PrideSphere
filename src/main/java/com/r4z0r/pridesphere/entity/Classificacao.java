@@ -5,11 +5,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
+@Table(name = "Classificacao", uniqueConstraints = {
+        @UniqueConstraint(name = "uc_classificacao_descricao", columnNames = {"descricao", "tipoClassificacao"})
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
