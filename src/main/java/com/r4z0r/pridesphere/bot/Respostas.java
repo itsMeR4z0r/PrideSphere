@@ -17,8 +17,8 @@ import static com.r4z0r.pridesphere.bot.Acoes.*;
 import static com.r4z0r.pridesphere.bot.Constants.*;
 
 public class Respostas {
-    private Mensagem mensagem;
-    private CallbackMsgRepository callbackMsgRepository;
+    private final Mensagem mensagem;
+    private final CallbackMsgRepository callbackMsgRepository;
 
 
     public Respostas(Mensagem mensagem, CallbackMsgRepository callbackMsgRepository) {

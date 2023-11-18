@@ -3,21 +3,15 @@ package com.r4z0r.pridesphere.controllers;
 import com.google.zxing.WriterException;
 import com.r4z0r.pridesphere.Util;
 import com.r4z0r.pridesphere.entity.AdminSession;
-import com.r4z0r.pridesphere.entity.Usuario;
 import com.r4z0r.pridesphere.repositories.AdminRepository;
 import com.r4z0r.pridesphere.repositories.AdminSessionRepository;
 import com.r4z0r.pridesphere.repositories.UsuarioRepository;
-import io.ipinfo.api.IPinfo;
-import io.ipinfo.api.errors.RateLimitedException;
-import io.ipinfo.api.model.IPResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.GeneralSecurityException;
 import java.util.UUID;
@@ -39,9 +33,11 @@ public class LoginController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Value("${urlUI}")
+    private String urlUI;
 
     @PostMapping("/validateSession")
-    public String validateSession(@RequestBody String data){
+    public String validateSession(@RequestBody String data) {
         JSONObject returnJson = new JSONObject();
         String returnString = "";
         Util util = new Util(env.getProperty("crypto.key.encryption"));
@@ -55,35 +51,35 @@ public class LoginController {
                 returnJson.put("error", "Dados inválidos");
                 returnString = util.encrypt(returnJson.toString());
                 return returnString;
-            }else{
+            } else {
                 if (json.getString("key").equals(env.getProperty("crypto.key.validation"))) {
                     var session = adminSessionRepository.findById(UUID.fromString(json.getString("sid")));
-                    if(session.isPresent()){
+                    if (session.isPresent()) {
                         var sessionAdmin = session.get();
-                        if(sessionAdmin.getUserAgent().equals(json.getString("userAgent")) && sessionAdmin.isLogado()){
-                            returnJson.put("Success","requisicao verificada");
-                            returnJson.put("sid",sessionAdmin.getId());
-                            returnJson.put("user",new JSONObject(sessionAdmin.getAdmin().toString()));
-                        }else{
+                        if (sessionAdmin.getUserAgent().equals(json.getString("userAgent")) && sessionAdmin.isLogado()) {
+                            returnJson.put("Success", "requisicao verificada");
+                            returnJson.put("sid", sessionAdmin.getId());
+                            returnJson.put("user", new JSONObject(sessionAdmin.getAdmin().toString()));
+                        } else {
                             returnJson.put("error", "Requisicao invalida");
                         }
-                    }else{
+                    } else {
                         returnJson.put("error", "Requisicao nao encontrada");
                     }
-                }else {
+                } else {
                     returnJson.put("error", "Chave inválida");
                 }
             }
             returnJson.put("key", env.getProperty("crypto.key.validation"));
             returnString = util.encrypt(returnJson.toString());
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return returnString;
     }
 
     @PostMapping("/check")
-    public String checkQrCodeLogin(@RequestBody String data){
+    public String checkQrCodeLogin(@RequestBody String data) {
         JSONObject returnJson = new JSONObject();
         String returnString = "";
         Util util = new Util(env.getProperty("crypto.key.encryption"));
@@ -97,33 +93,33 @@ public class LoginController {
                 returnJson.put("error", "Dados inválidos");
                 returnString = util.encrypt(returnJson.toString());
                 return returnString;
-            }else{
+            } else {
                 if (json.getString("key").equals(env.getProperty("crypto.key.validation"))) {
                     var session = adminSessionRepository.findById(UUID.fromString(json.getString("sid")));
-                    if(session.isPresent()){
-                        if(session.get().isLogado() && !session.get().isUsado()){
+                    if (session.isPresent()) {
+                        if (session.get().isLogado() && !session.get().isUsado()) {
                             var sessionAdmin = session.get();
                             sessionAdmin.setUsado(true);
                             adminSessionRepository.save(sessionAdmin);
-                            returnJson.put("Success","requisicao verificada");
-                            returnJson.put("sid",sessionAdmin.getId());
-                        }else{
-                            if(session.get().isUsado()){
+                            returnJson.put("Success", "requisicao verificada");
+                            returnJson.put("sid", sessionAdmin.getId());
+                        } else {
+                            if (session.get().isUsado()) {
                                 returnJson.put("error", "requisicao ja usada");
-                            }else {
+                            } else {
                                 returnJson.put("error", "requisicao nao verificada");
                             }
                         }
-                    }else{
+                    } else {
                         returnJson.put("error", "Requisicao nao encontrada");
                     }
-                }else {
+                } else {
                     returnJson.put("error", "Chave inválida");
                 }
             }
             returnJson.put("key", env.getProperty("crypto.key.validation"));
             returnString = util.encrypt(returnJson.toString());
-        }catch (GeneralSecurityException | JSONException e) {
+        } catch (GeneralSecurityException | JSONException e) {
             throw new RuntimeException(e);
         }
         return returnString;
@@ -243,5 +239,10 @@ public class LoginController {
             throw new RuntimeException(e);
         }
         return returnString;
+    }
+
+    @GetMapping("/teste")
+    public void teste() {
+        System.out.println(System.getProperty("urlUI"));
     }
 }

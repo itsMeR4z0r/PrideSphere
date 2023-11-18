@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 @Service
 public class Api {
-    private String apiKey;
+    private final String apiKey;
     @Autowired
     public Api(Environment env) {
         apiKey = env.getProperty("geoapify.data.config.apiKey");

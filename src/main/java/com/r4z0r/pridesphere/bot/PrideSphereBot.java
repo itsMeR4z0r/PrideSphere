@@ -41,6 +41,7 @@ public class PrideSphereBot extends TelegramLongPollingBot {
     @Autowired
     public PrideSphereBot(Environment env) {
         this.env = env;
+        System.setProperty("urlUI", env.getProperty("urlUI"));
         this.ownnerId = Long.valueOf(Objects.requireNonNull(env.getProperty("telegram.data.config.botOwnnerID")));
     }
 
@@ -98,7 +99,7 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                         usuarioRepository.save(usuario);
                     }
                     SendMessage msg = new SendMessage();
-                    msg.setText(env.getProperty("urlUI") + "/qrcode?id=" + new Util(env.getProperty("crypto.key.encryption")).encrypt(String.valueOf(update.getMessage().getFrom().getId())));
+                    msg.setText(System.getProperty("urlUI") + "/qrcode?id=" + new Util(env.getProperty("crypto.key.encryption")).encrypt(String.valueOf(update.getMessage().getFrom().getId())));
                     msg.setChatId(update.getMessage().getChatId());
                     msg.setParseMode(ParseMode.MARKDOWN);
                     execute(msg);
