@@ -1,6 +1,7 @@
 package com.r4z0r.pridesphere.bot.data;
 
 import com.r4z0r.pridesphere.entity.Classificacao;
+import com.r4z0r.pridesphere.enums.TipoClassificacao;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +19,7 @@ public class CallbackMsg {
     private UUID id;
 
     private String etapa;
-    private String natureza;
+    private TipoClassificacao natureza;
     private String relatoId;
     
     private Double lon;

@@ -49,4 +49,8 @@ public class ClassificacaoService {
                 .filter(descricao -> !descricao.isBlank())
                 .orElseThrow(() -> new RuntimeException("Descricao cannot be null or blank"));
     }
+
+    public List<Classificacao> findByNatureza(TipoClassificacao natureza) {
+        return classificacaoRepository.findByNatureza(natureza);
+    }
 }

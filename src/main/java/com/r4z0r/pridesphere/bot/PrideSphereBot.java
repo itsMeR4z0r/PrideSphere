@@ -7,6 +7,7 @@ import com.r4z0r.pridesphere.bot.data.MensagemService;
 import com.r4z0r.pridesphere.entity.Admin;
 import com.r4z0r.pridesphere.entity.Usuario;
 import com.r4z0r.pridesphere.services.AdminService;
+import com.r4z0r.pridesphere.services.ClassificacaoService;
 import com.r4z0r.pridesphere.services.UsuarioService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -63,7 +64,8 @@ public class PrideSphereBot extends TelegramLongPollingBot {
     private AdminService adminService;
     @Autowired
     private UsuarioService usuarioService;
-
+    @Autowired
+    private ClassificacaoService classificacaoService;
 
     private InlineKeyboardMarkup makeCancelButton() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
@@ -84,7 +86,7 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                 mensagem.setChatId(update.getMessage().getChatId());
                 mensagem.setUserId(update.getMessage().getFrom().getId());
                 mensagem.setUserName(update.getMessage().getFrom().getUserName());
-                var respostas = new Respostas(mensagemService.save(mensagem), callbackMsgService);
+                var respostas = new Respostas(mensagemService.save(mensagem), callbackMsgService,classificacaoService);
                 try {
                     executeAsync(respostas.start());
                 } catch (TelegramApiException e) {
@@ -186,7 +188,7 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                 mensagem = mensagemService.save(mensagem);
             }
 
-            var respostas = new Respostas(mensagem, callbackMsgService);
+            var respostas = new Respostas(mensagem, callbackMsgService,classificacaoService);
             try {
                 if (!callbackMsgService.existsById(UUID.fromString(update.getCallbackQuery().getData()))) {
                     throw new NoSuchElementException("Não foi encontrado o callbackMsg com id: " + update.getCallbackQuery().getData());
@@ -196,7 +198,7 @@ public class PrideSphereBot extends TelegramLongPollingBot {
                     case ENVIAR_RELATO -> executeAsync(respostas.enviarRelato());
                     case VER_RELATO -> executeAsync(respostas.verRelatos());
                     case MENU_INICIAL -> executeAsync(respostas.menuInicial());
-                    case ENVIAR_RELATO_OP_ENVIAR -> executeAsync(respostas.selectOpRelato());
+                    case ENVIAR_RELATO_OP_ENVIAR -> executeAsync(respostas.selectOpRelato(callback.getNatureza()));
                     default ->
                             throw new IllegalStateException("Unexpected value: " + update.getCallbackQuery().getData());
                 }

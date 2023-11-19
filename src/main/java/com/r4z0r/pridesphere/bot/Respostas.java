@@ -3,6 +3,9 @@ package com.r4z0r.pridesphere.bot;
 import com.r4z0r.pridesphere.bot.data.CallbackMsg;
 import com.r4z0r.pridesphere.bot.data.CallbackMsgService;
 import com.r4z0r.pridesphere.bot.data.Mensagem;
+import com.r4z0r.pridesphere.entity.Classificacao;
+import com.r4z0r.pridesphere.enums.TipoClassificacao;
+import com.r4z0r.pridesphere.services.ClassificacaoService;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -24,13 +27,15 @@ public class Respostas {
     private final Mensagem mensagem;
     private final CallbackMsgService callbackMsgService;
 
+    private final ClassificacaoService classificacaoService;
 
-    public Respostas(Mensagem mensagem, CallbackMsgService callbackMsgService) {
+    public Respostas(Mensagem mensagem, CallbackMsgService callbackMsgService, ClassificacaoService classificacaoService) {
+        this.classificacaoService = classificacaoService;
         this.mensagem = mensagem;
         this.callbackMsgService = callbackMsgService;
     }
 
-    private String makeRelato(String etapa, String natureza, String relatoId) {
+    private String makeRelato(String etapa, TipoClassificacao natureza, String relatoId) {
         var relato = new CallbackMsg();
         relato.setMensagem(mensagem);
         if (etapa != null) {
@@ -101,7 +106,6 @@ public class Respostas {
         return new_message;
     }
 
-
     public EditMessageText enviarRelato() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         List<InlineKeyboardButton> voltarParaMenu = new ArrayList<>();
@@ -109,17 +113,17 @@ public class Respostas {
         InlineKeyboardButton btnPositivo = new InlineKeyboardButton();
         InlineKeyboardButton btnNegativo = new InlineKeyboardButton();
         btnPositivo.setText("Positivo \uD83D\uDE0A");
-        btnPositivo.setCallbackData(makeRelato(ENVIAR_RELATO_OP_ENVIAR, "Positivo", null));
+        btnPositivo.setCallbackData(makeRelato(ENVIAR_RELATO_OP_ENVIAR, TipoClassificacao.POSITIVA, null));
 
         btnNegativo.setText("Negativo \uD83D\uDE14");
-        btnNegativo.setCallbackData(makeRelato(ENVIAR_RELATO_OP_ENVIAR, "Negativo", null));
+        btnNegativo.setCallbackData(makeRelato(ENVIAR_RELATO_OP_ENVIAR, TipoClassificacao.NEGATIVA, null));
 
         row2.add(btnPositivo);
         row2.add(btnNegativo);
         rows.add(row2);
 
         InlineKeyboardButton btnVoltar = new InlineKeyboardButton();
-        btnVoltar.setText("Voltar");
+        btnVoltar.setText("Voltar 🔙");
         btnVoltar.setCallbackData(makeRelato(MENU_INICIAL, null, null));
         voltarParaMenu.add(btnVoltar);
         rows.add(voltarParaMenu);
@@ -131,14 +135,20 @@ public class Respostas {
         return new_message;
     }
 
-    public EditMessageText selectOpRelato() {
+    public EditMessageText selectOpRelato(TipoClassificacao natureza) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         List<InlineKeyboardButton> voltarParaMenu = new ArrayList<>();
-        List<InlineKeyboardButton> row2 = new ArrayList<>();
-        rows.add(row2);
-
+        List<Classificacao> classificacoes = classificacaoService.findByNatureza(natureza);
+        for (Classificacao classificacao : classificacoes) {
+            List<InlineKeyboardButton> row2 = new ArrayList<>();
+            InlineKeyboardButton btnClassificacao = new InlineKeyboardButton();
+            btnClassificacao.setText(classificacao.getDescricao());
+            btnClassificacao.setCallbackData(makeRelato(ENVIAR_RELATO_OP_ENVIAR, natureza, classificacao.getId().toString()));
+            row2.add(btnClassificacao);
+            rows.add(row2);
+        }
         InlineKeyboardButton btnVoltar = new InlineKeyboardButton();
-        btnVoltar.setText("Voltar");
+        btnVoltar.setText("Voltar 🔙");
         btnVoltar.setCallbackData(makeRelato(MENU_INICIAL, null, null));
         voltarParaMenu.add(btnVoltar);
         rows.add(voltarParaMenu);
@@ -155,7 +165,7 @@ public class Respostas {
         List<InlineKeyboardButton> voltarParaMenu = new ArrayList<>();
 
         InlineKeyboardButton btnVoltar = new InlineKeyboardButton();
-        btnVoltar.setText("Voltar");
+        btnVoltar.setText("Voltar 🔙");
         btnVoltar.setCallbackData(makeRelato(MENU_INICIAL, null, null));
         voltarParaMenu.add(btnVoltar);
         rows.add(voltarParaMenu);

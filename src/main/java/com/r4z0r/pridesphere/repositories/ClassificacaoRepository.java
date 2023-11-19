@@ -12,4 +12,7 @@ import java.util.UUID;
 public interface ClassificacaoRepository extends JpaRepository<Classificacao, UUID> {
     @Query("select c from Classificacao c where c.tipoClassificacao = ?1")
     List<Classificacao> findByTipoClassificacao(TipoClassificacao tipo);
+
+    @Query("select c from Classificacao c where c.tipoClassificacao = ?1")
+    List<Classificacao> findByNatureza(TipoClassificacao natureza);
 }

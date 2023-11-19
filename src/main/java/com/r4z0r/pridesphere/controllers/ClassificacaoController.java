@@ -22,13 +22,22 @@ public class ClassificacaoController {
     private final Environment env;
     private final ClassificacaoService classificacaoService;
     private final Util util;
+    private JSONObject returnJson;
 
     public ClassificacaoController(Environment env, ClassificacaoService classificacaoService) {
         this.env = env;
         this.classificacaoService = classificacaoService;
         this.util = new Util(env.getProperty("crypto.key.encryption"));
+        prepareReturnJson();
     }
-
+    private void prepareReturnJson() {
+        try {
+            returnJson = new JSONObject();
+            this.returnJson.put("key", env.getProperty("crypto.key.validation"));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * @param data - JSON com os dados da classificação
      *             <p> Exemplo de JSON:
@@ -43,10 +52,9 @@ public class ClassificacaoController {
      */
     @PostMapping("/editar")
     public String editar(@RequestBody String data) {
+        prepareReturnJson();
         try {
-            JSONObject returnJson = new JSONObject();
             JSONArray lista = new JSONArray();
-
             String returnString = "";
             var decrypted = decryptData(data, util);
             JSONObject json = new JSONObject(decrypted);
@@ -65,8 +73,10 @@ public class ClassificacaoController {
             Classificacao classificacao = classificacaoService.findById(id).orElseThrow(() -> {
                 return new RuntimeException("Classificacao not found");
             });
-            classificacao.setDescricao(json.getString("descricao"));
-            classificacaoService.save(classificacao);
+            if (!classificacao.getDescricao().equals(json.getString("descricao"))) {
+                classificacao.setDescricao(json.getString("descricao"));
+                classificacaoService.save(classificacao);
+            }
             returnJson.put("success", "success");
             returnJson.put("message", "Classificação editada com sucesso");
             returnString = encryptData(returnJson.toString());
@@ -89,8 +99,8 @@ public class ClassificacaoController {
      */
     @PostMapping("/obter")
     public String obter(@RequestBody String data) {
+        prepareReturnJson();
         try {
-            JSONObject returnJson = new JSONObject();
             String returnString = "";
             var decrypted = decryptData(data, util);
             JSONObject json = new JSONObject(decrypted);
@@ -132,8 +142,8 @@ public class ClassificacaoController {
      */
     @PostMapping("/deletar")
     public String deletar(@RequestBody String data) {
+        prepareReturnJson();
         try {
-            JSONObject returnJson = new JSONObject();
             JSONArray lista = new JSONArray();
             String returnString = "";
             var decrypted = decryptData(data, util);
@@ -174,8 +184,8 @@ public class ClassificacaoController {
 
     @PostMapping("/cadastrar")
     public String cadastrar(@RequestBody String data) {
+        prepareReturnJson();
         try {
-            JSONObject returnJson = new JSONObject();
             JSONArray lista = new JSONArray();
             String returnString = "";
             var decrypted = decryptData(data, util);
@@ -201,7 +211,15 @@ public class ClassificacaoController {
                 return returnString;
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            var returnString = "";
+            try {
+                returnJson.put("error", "error");
+                returnJson.put("message", e.getMessage());
+                returnString = encryptData(returnJson.toString());
+            } catch (JSONException | GeneralSecurityException ex) {
+                throw new RuntimeException(ex);
+            }
+            return returnString;
         }
     }
 
@@ -224,8 +242,8 @@ public class ClassificacaoController {
      */
     @GetMapping("/lista")
     public String listagem(@RequestParam TipoClassificacao tipo) {
+        prepareReturnJson();
         try {
-            JSONObject returnJson = new JSONObject();
             JSONArray lista = new JSONArray();
             String returnString = "";
             List<Classificacao> classificacoes = classificacaoService.findByTipoClassificacao(tipo);
@@ -259,6 +277,7 @@ public class ClassificacaoController {
      * @throws GeneralSecurityException - Exceção de segurança
      */
     private String decryptData(String data, Util util) throws GeneralSecurityException {
+        prepareReturnJson();
         String decrypted = null;
         try {
             JSONObject jsonData = new JSONObject(data);
@@ -297,7 +316,8 @@ public class ClassificacaoController {
      * @throws JSONException - Exceção de JSON
      */
     private boolean validateData(JSONObject json, JSONObject returnJson) throws JSONException {
-        if (!json.has("key") || !json.has("descricao") || !json.has("tipo") || !json.has("id")) {
+        prepareReturnJson();
+        if (!json.has("key")) {
             returnJson.put("error", "error");
             returnJson.put("message", "Dados inválidos");
             return true;

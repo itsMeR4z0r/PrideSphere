@@ -14,9 +14,9 @@ public class PrideSphereApplication {
         var ctx = SpringApplication.run(PrideSphereApplication.class, args);
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-            var botSession = botsApi.registerBot(ctx.getBean("prideSphereBot", TelegramLongPollingBot.class));
+            var botSession = botsApi.registerBot(ctx.getBean(TelegramLongPollingBot.class));
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            System.out.println("Erro ao iniciar o bot: " + e.getMessage());
         }
     }
 
